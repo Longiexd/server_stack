@@ -1,34 +1,91 @@
-version: '3.7'
+version: "3.9"
 
 services:
-  db:
-    image: postgres:14
-    environment:
-      - POSTGRES_USER=n8n
-      - POSTGRES_PASSWORD=n8npass
-      - POSTGRES_DB=n8n
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-  n8n:
-    image: n8nio/n8n
-    ports:
-      - "5678:5678"
+  n8n_client01:
+    image: n8nio/n8n:latest
+    container_name: n8n_client01
+    restart: always
     environment:
       - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=db
+      - DB_POSTGRESDB_HOST=db_n8n_client01
+      - DB_POSTGRESDB_PORT=5432
       - DB_POSTGRESDB_DATABASE=n8n
       - DB_POSTGRESDB_USER=n8n
-      - DB_POSTGRESDB_PASSWORD=n8npass
+      - DB_POSTGRESDB_PASSWORD=n8n
       - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER=admin
-      - N8N_BASIC_AUTH_PASSWORD=strongpass
+      - N8N_BASIC_AUTH_USER=client01
+      - N8N_BASIC_AUTH_PASSWORD=changeme01
+      - N8N_PORT=5678
+      - N8N_HOST=0.0.0.0
+      - GENERIC_TIMEZONE=Europe/Tunis
       - N8N_SECURE_COOKIE=false
-    depends_on:
-      - db
+    ports:
+      - "5678:5678"
     volumes:
-      - n8n_data:/home/node/.n8n
+      - n8n_client01_data:/home/node/.n8n
+    depends_on:
+      - db_n8n_client01
+    networks:
+      - n8n-net
+      - automation_net
+  n8n_client02:
+    image: n8nio/n8n:latest
+    container_name: n8n_client02
+    restart: always
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=db_n8n_client02
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD=n8n
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=client02
+      - N8N_BASIC_AUTH_PASSWORD=changeme02
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - GENERIC_TIMEZONE=Europe/Tunis
+      - N8N_SECURE_COOKIE=false
+    ports:
+      - "5680:5678"
+    volumes:
+      - n8n_client02_data:/home/node/.n8n
+    depends_on:
+      - db_n8n_client02
+    networks:
+      - n8n-net
 
+  db_n8n_client01:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: n8n
+      POSTGRES_DB: n8n
+    volumes:
+      - db_n8n_client01_data:/var/lib/postgresql/data
+    networks:
+      - n8n-net
+
+  db_n8n_client02:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: n8n
+      POSTGRES_DB: n8n
+    volumes:
+      - db_n8n_client02_data:/var/lib/postgresql/data
+    networks:
+      - n8n-net
+
+networks:
+  n8n-net:
+    driver: bridge
+  automation_net:
+    external: true
 volumes:
-  postgres_data:
-  n8n_data:
+  n8n_client01_data:
+  n8n_client02_data:
+  db_n8n_client01_data:
+  db_n8n_client02_data:

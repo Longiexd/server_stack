@@ -1,0 +1,12 @@
+# env
+.env
+
+# docker volumes / data
+odoo-docker/**/pg-data/
+odoo-docker/**/db_data/
+odoo-docker/**/client*_db_data/
+
+# general
+data/
+logs/
+*.log

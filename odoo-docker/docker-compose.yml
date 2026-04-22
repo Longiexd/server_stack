@@ -1,39 +1,90 @@
-version: '3.8'
-
+version: "3.9"
 services:
-  db:
+  db_client01:
     image: postgres:15
-    container_name: odoo-db
+    container_name: db_client01
     environment:
       POSTGRES_USER: odoo
-      POSTGRES_PASSWORD: odoo123
-      POSTGRES_DB: postgres
+      POSTGRES_PASSWORD: odoo01
+      POSTGRES_DB: odoo_db01
     volumes:
-      - odoo-db-data:/var/lib/postgresql/data
+      - db_client01_data:/var/lib/postgresql/data
     networks:
       - odoo-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  odoo:
+  odoo_client01:
     image: odoo:18
-    container_name: odoo18
+    container_name: odoo_client01
     depends_on:
-      - db
+      db_client01:
+        condition: service_healthy
     ports:
       - "8069:8069"
     environment:
-      HOST: db
-      USER: odoo
-      PASSWORD: odoo123
+      - HOST=db_client01
+      - PORT=5432
+      - USER=odoo
+      - PASSWORD=odoo01
     volumes:
-      - odoo-web-data:/var/lib/odoo
-      - ./odoo.conf:/etc/odoo/odoo.conf
-      - ./log:/var/lib/odoo/log
+      - odoo_client01_data:/var/lib/odoo
+      - ./clients/client01:/etc/odoo
     networks:
       - odoo-net
+    restart: unless-stopped
+
+  db_client02:
+    image: postgres:15
+    container_name: db_client02
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo02
+      POSTGRES_DB: odoo_db02
+    volumes:
+      - db_client02_data:/var/lib/postgresql/data
+    networks:
+      - odoo-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  odoo_client02:
+    image: odoo:18
+    container_name: odoo_client02
+    depends_on:
+      db_client02:
+        condition: service_healthy
+    ports:
+      - "8070:8069"
+    environment:
+      - HOST=db_client02
+      - PORT=5432
+      - USER=odoo
+      - PASSWORD=odoo02
+    volumes:
+      - odoo_client02_data:/var/lib/odoo
+      - ./clients/client02:/etc/odoo
+    networks:
+      - odoo-net
+    restart: unless-stopped
 
 volumes:
-  odoo-db-data:
-  odoo-web-data:
+  db_client01_data:
+  db_client02_data:
+  odoo_client01_data:
+  odoo_client02_data:
 
 networks:
   odoo-net:
+    driver: bridge
+
+  automation_net:
+    external: true

@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: klynx
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: klynx
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - klynx_network
+
+  directus:
+    image: directus/directus:latest
+    restart: always
+    ports:
+      - "8055:8055"
+    depends_on:
+      - postgres
+    environment:
+      SECRET: ${DIRECTUS_SECRET}
+      DB_CLIENT: pg
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: klynx
+      DB_USER: klynx
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      PUBLIC_URL: ${PUBLIC_URL}
+    volumes:
+      - directus_uploads:/directus/uploads
+    networks:
+      - klynx_network
+
+volumes:
+  postgres_data:
+  directus_uploads:
+
+networks:
+  klynx_network:
+    driver: bridge
