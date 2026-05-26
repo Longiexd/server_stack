@@ -76,6 +76,25 @@ services:
       - odoo-net
     restart: unless-stopped
 
+#==== nginx ====#
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - odoo_client01
+      - odoo_client02
+    networks:
+      - odoo-net
+    restart: unless-stopped
+
+
 volumes:
   db_client01_data:
   db_client02_data:
@@ -88,3 +107,4 @@ networks:
 
   automation_net:
     external: true
+
